@@ -23,7 +23,7 @@ class PhpWorkflowSerializer implements WorkflowSerializerInterface
 
     public function unserializeWorkflow($string)
     {
-
+        return $this->unserialize(json_decode($string, true));
     }
 
     public function serialize($data)
@@ -50,8 +50,21 @@ class PhpWorkflowSerializer implements WorkflowSerializerInterface
         return $data;
     }
 
-    public function unserialize($string)
+    public function unserialize($data)
     {
-        return unserialize($string);
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->unserialize($value);
+            }
+        }
+        if (isset($data['$type'])) {
+            $type = $data['$type'];
+            $reflect = new \ReflectionClass($type);
+            $object = $reflect->newInstanceWithoutConstructor();
+            unset($data['$type']);
+            $object->workflowUnserialize($this, $data);
+            return $object;
+        }
+        return $data;
     }
 }
