@@ -15,8 +15,10 @@ namespace PHPMentors\Workflower\Workflow\Activity;
 use PHPMentors\DomainKata\Entity\EntityInterface;
 use PHPMentors\Workflower\Workflow\Participant\ParticipantInterface;
 use PHPMentors\Workflower\Workflow\Participant\Role;
+use PHPMentors\Workflower\Persistence\WorkflowSerializable;
+use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
-class Task implements ActivityInterface, \Serializable
+class Task implements ActivityInterface, WorkflowSerializable
 {
     /**
      * @var int|string
@@ -58,9 +60,9 @@ class Task implements ActivityInterface, \Serializable
     /**
      * {@inheritdoc}
      */
-    public function serialize()
+    public function workflowSerialize(WorkflowSerializerInterface $serializer)
     {
-        return serialize(array(
+        return $serializer->serialize(array(
             'id' => $this->id,
             'role' => $this->role,
             'name' => $this->name,
@@ -72,9 +74,9 @@ class Task implements ActivityInterface, \Serializable
     /**
      * {@inheritdoc}
      */
-    public function unserialize($serialized)
+    public function workflowUnserialize(WorkflowSerializerInterface $serializer, $serialized)
     {
-        foreach (unserialize($serialized) as $name => $value) {
+        foreach ($serializer->unserialize($serialized) as $name => $value) {
             if (property_exists($this, $name)) {
                 $this->$name = $value;
             }

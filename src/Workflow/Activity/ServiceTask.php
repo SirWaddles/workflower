@@ -41,10 +41,10 @@ class ServiceTask extends Task implements OperationalInterface
     /**
      * {@inheritdoc}
      */
-    public function serialize()
+    public function workflowSerialize(WorkflowSerializerInterface $serializer)
     {
-        return serialize(array(
-            get_parent_class($this) => parent::serialize(),
+        return $serializer->serialize(array(
+            get_parent_class($this) => parent::workflowSerialize($serializer),
             'operation' => $this->operation,
         ));
     }
@@ -52,11 +52,11 @@ class ServiceTask extends Task implements OperationalInterface
     /**
      * {@inheritdoc}
      */
-    public function unserialize($serialized)
+    public function workflowUnserialize(WorkflowSerializerInterface $serializer, $serialized)
     {
-        foreach (unserialize($serialized) as $name => $value) {
+        foreach ($serializer->unserialize($serialized) as $name => $value) {
             if ($name == get_parent_class($this)) {
-                parent::unserialize($value);
+                parent::workflowUnserialize($serializer, $value);
                 continue;
             }
 

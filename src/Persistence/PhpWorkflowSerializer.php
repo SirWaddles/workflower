@@ -16,19 +16,42 @@ use PHPMentors\Workflower\Workflow\Workflow;
 
 class PhpWorkflowSerializer implements WorkflowSerializerInterface
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function serialize(Workflow $workflow)
+    public function serializeWorkflow($workflow)
     {
-        return serialize($workflow);
+        return json_encode($this->serialize($workflow));
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function deserialize($workflow)
+    public function unserializeWorkflow($string)
     {
-        return unserialize($workflow);
+
+    }
+
+    public function serialize($data)
+    {
+        if (is_array($data) || $data instanceof \Traversable) {
+            $object = [];
+            foreach ($data as $key => $value) {
+                $object[$key] = $this->serialize($value);
+            }
+            return $object;
+        }
+        if ($data instanceof \DateTime) {
+            return $data->format('d-m-Y'); // hurrrr, fix it later
+        }
+        if ($data instanceof WorkflowSerializable) {
+            $inputData = $data->workflowSerialize($this);
+            $inputData['$type'] = get_class($data);
+            return $inputData;
+        }
+        if (is_numeric($data) || is_string($data)) return $data;
+        if ($data instanceof \Serializable) {
+            return serialize($data); // Stagehand
+        }
+        return $data;
+    }
+
+    public function unserialize($string)
+    {
+        return unserialize($string);
     }
 }

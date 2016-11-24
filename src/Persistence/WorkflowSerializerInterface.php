@@ -18,16 +18,20 @@ use PHPMentors\Workflower\Workflow\Workflow;
 interface WorkflowSerializerInterface extends ServiceInterface
 {
     /**
-     * @param Workflow $workflow
+     * @param mixed $entity
      *
      * @return string
      */
-    public function serialize(Workflow $workflow);
+    public function serialize($entity);
 
     /**
-     * @param string $workflow
+     * @param string $string
      *
-     * @return Workflow
+     * @return mixed
      */
-    public function deserialize($workflow);
+    public function unserialize($string);
+
+    public function serializeWorkflow($workflow);
+
+    public function unserializeWorkflow($string);
 }
