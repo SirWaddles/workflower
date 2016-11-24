@@ -3,8 +3,10 @@ namespace PHPMentors\Workflower\Workflow\Activity;
 
 use PHPMentors\Workflower\Workflow\Participant\LoggedParticipant;
 use PHPMentors\Workflower\Workflow\Participant\ParticipantInterface;
+use PHPMentors\Workflower\Persistence\WorkflowSerializable;
+use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
-class WorkItem implements WorkItemInterface, \Serializable
+class WorkItem implements WorkItemInterface, WorkflowSerializable
 {
     /**
      * @var string
@@ -54,9 +56,9 @@ class WorkItem implements WorkItemInterface, \Serializable
     /**
      * {@inheritdoc}
      */
-    public function serialize()
+    public function workflowSerialize(WorkflowSerializerInterface $serializer)
     {
-        return serialize(array(
+        return $serializer->serialize(array(
             'currentState' => $this->currentState,
             'participant' => $this->participant === null ? null : ($this->participant instanceof LoggedParticipant ? $this->participant : new LoggedParticipant($this->participant)),
             'creationDate' => $this->creationDate,
@@ -71,9 +73,9 @@ class WorkItem implements WorkItemInterface, \Serializable
     /**
      * {@inheritdoc}
      */
-    public function unserialize($serialized)
+    public function workflowUnserialize(WorkflowSerializerInterface $serializer, $serialized)
     {
-        foreach (unserialize($serialized) as $name => $value) {
+        foreach ($serializer->unserialize($serialized) as $name => $value) {
             if (property_exists($this, $name)) {
                 $this->$name = $value;
             }

@@ -13,8 +13,10 @@
 namespace PHPMentors\Workflower\Workflow\Participant;
 
 use PHPMentors\Workflower\Workflow\Resource\ResourceInterface;
+use PHPMentors\Workflower\Persistence\WorkflowSerializable;
+use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
-class LoggedParticipant implements ParticipantInterface, \Serializable
+class LoggedParticipant implements ParticipantInterface, WorkflowSerializable
 {
     /**
      * @var int|string
@@ -38,9 +40,9 @@ class LoggedParticipant implements ParticipantInterface, \Serializable
     /**
      * {@inheritdoc}
      */
-    public function serialize()
+    public function workflowSerialize(WorkflowSerializerInterface $serializer)
     {
-        return serialize(array(
+        return $serializer->serialize(array(
             'id' => $this->id,
             'name' => $this->name,
         ));
@@ -49,9 +51,9 @@ class LoggedParticipant implements ParticipantInterface, \Serializable
     /**
      * {@inheritdoc}
      */
-    public function unserialize($serialized)
+    public function workflowUnserialize(WorkflowSerializerInterface $serializer, $serialized)
     {
-        foreach (unserialize($serialized) as $name => $value) {
+        foreach ($serializer->unserialize($serialized) as $name => $value) {
             if (property_exists($this, $name)) {
                 $this->$name = $value;
             }

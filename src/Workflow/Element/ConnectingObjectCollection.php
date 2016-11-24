@@ -14,8 +14,10 @@ namespace PHPMentors\Workflower\Workflow\Element;
 
 use PHPMentors\DomainKata\Entity\EntityCollectionInterface;
 use PHPMentors\DomainKata\Entity\EntityInterface;
+use PHPMentors\Workflower\Persistence\WorkflowSerializable;
+use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
-class ConnectingObjectCollection implements EntityCollectionInterface, \Serializable
+class ConnectingObjectCollection implements EntityCollectionInterface, WorkflowSerializable
 {
     /**
      * @var array
@@ -25,9 +27,9 @@ class ConnectingObjectCollection implements EntityCollectionInterface, \Serializ
     /**
      * {@inheritdoc}
      */
-    public function serialize()
+    public function workflowSerialize(WorkflowSerializerInterface $serializer)
     {
-        return serialize(array(
+        return $serializer->serialize(array(
             'connectingObjects' => $this->connectingObjects,
         ));
     }
@@ -35,9 +37,9 @@ class ConnectingObjectCollection implements EntityCollectionInterface, \Serializ
     /**
      * {@inheritdoc}
      */
-    public function unserialize($serialized)
+    public function workflowUnserialize(WorkflowSerializerInterface $serializer, $serialized)
     {
-        foreach (unserialize($serialized) as $name => $value) {
+        foreach ($serializer->unserialize($serialized) as $name => $value) {
             if (property_exists($this, $name)) {
                 $this->$name = $value;
             }
