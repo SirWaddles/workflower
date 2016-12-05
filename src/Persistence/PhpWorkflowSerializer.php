@@ -28,7 +28,7 @@ class PhpWorkflowSerializer implements WorkflowSerializerInterface
 
     public function serialize($data)
     {
-        if (is_array($data) || $data instanceof \Traversable) {
+        if (is_array($data)) {
             $object = [];
             foreach ($data as $key => $value) {
                 $object[$key] = $this->serialize($value);
@@ -45,8 +45,9 @@ class PhpWorkflowSerializer implements WorkflowSerializerInterface
         }
         if (is_numeric($data) || is_string($data)) return $data;
         if ($data instanceof \Serializable) {
-            return serialize($data); // Stagehand
+            return ['$method' => 'php_serialize', 'data' => serialize($data)]; // Stagehand
         }
+        $data = $this->processEntityData($data);
         return $data;
     }
 
@@ -57,6 +58,11 @@ class PhpWorkflowSerializer implements WorkflowSerializerInterface
                 $data[$key] = $this->unserialize($value);
             }
         }
+        if (isset($data['$method'])) {
+            if ($data['$method'] === 'php_serialize') {
+                return unserialize($data['data']);
+            }
+        }
         if (isset($data['$type'])) {
             $type = $data['$type'];
             $reflect = new \ReflectionClass($type);
@@ -65,6 +71,17 @@ class PhpWorkflowSerializer implements WorkflowSerializerInterface
             $object->workflowUnserialize($this, $data);
             return $object;
         }
+        $data = $this->processSerializedData($data);
+        return $data;
+    }
+
+    public function processEntityData($data)
+    {
+        return $data;
+    }
+
+    public function processSerializedData($data)
+    {
         return $data;
     }
 }
