@@ -13,6 +13,7 @@
 namespace PHPMentors\Workflower\Persistence;
 
 use PHPMentors\Workflower\Workflow\Workflow;
+use Symfony\Component\ExpressionLanguage\Expression;
 
 class PhpWorkflowSerializer implements WorkflowSerializerInterface
 {
@@ -36,7 +37,10 @@ class PhpWorkflowSerializer implements WorkflowSerializerInterface
             return $object;
         }
         if ($data instanceof \DateTime) {
-            return $data->format('d-m-Y'); // hurrrr, fix it later
+            return ['$method' => 'date', 'date' => $data->format(\DateTime::ATOM)]; // hurrrr, fix it later
+        }
+        if ($data instanceof Expression) {
+            return ['$method' => 'expression', 'expression' => strval($data)];
         }
         if ($data instanceof WorkflowSerializable) {
             $inputData = $data->workflowSerialize($this);
@@ -61,6 +65,12 @@ class PhpWorkflowSerializer implements WorkflowSerializerInterface
         if (isset($data['$method'])) {
             if ($data['$method'] === 'php_serialize') {
                 return unserialize($data['data']);
+            }
+            if ($data['$method'] === 'date') {
+                return new \DateTime($data['date']);
+            }
+            if ($data['$method'] === 'expression') {
+                return new Expression($data['expression']);
             }
         }
         if (isset($data['$type'])) {
