@@ -14,6 +14,7 @@ namespace PHPMentors\Workflower\Workflow\Activity;
 
 use PHPMentors\Workflower\Workflow\Operation\OperationalInterface;
 use PHPMentors\Workflower\Workflow\Participant\Role;
+use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
 /**
  * @since Class available since Release 1.2.0
