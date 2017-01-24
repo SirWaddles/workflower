@@ -28,11 +28,14 @@ A BPMN 2.0 compliant workflow engine for PHP
   * Activities
     * Tasks
     * Service tasks
+    * Send tasks
   * Events
     * Start events
     * End events
   * Gateways
     * Exclusive gateways
+* Swimlanes
+  * Lanes
 
 ## Installation
 
@@ -51,6 +54,11 @@ composer require phpmentors/workflower "1.2.*"
 ```
 composer require phpmentors/workflower "~1.3@dev"
 ```
+
+## Documentation
+
+* [Quick Start Guide](https://github.com/phpmentors-jp/workflower/blob/master/docs/GUIDE.md)
+* [Release Notes](https://github.com/phpmentors-jp/workflower/releases)
 
 ## Support
 

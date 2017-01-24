@@ -12,6 +12,7 @@
 
 namespace PHPMentors\Workflower\Workflow;
 
+use PHPMentors\Workflower\Workflow\Activity\SendTask;
 use PHPMentors\Workflower\Workflow\Activity\ServiceTask;
 use PHPMentors\Workflower\Workflow\Activity\Task;
 use PHPMentors\Workflower\Workflow\Connection\SequenceFlow;
@@ -59,6 +60,13 @@ class WorkflowBuilder
      * @since Property available since Release 1.2.0
      */
     private $serviceTasks = array();
+
+    /**
+     * @var array
+     *
+     * @since Property available since Release 1.3.0
+     */
+    private $sendTasks = array();
 
     /**
      * @var string
@@ -203,6 +211,25 @@ class WorkflowBuilder
     }
 
     /**
+     * @param string     $id
+     * @param string     $participant
+     * @param string     $message
+     * @param string     $operation
+     * @param string     $name
+     * @param int|string $defaultSequenceFlow
+     *
+     * @since Method available since Release 1.3.0
+     */
+    public function addSendTask($id, $participant, $message, $operation, $name = null, $defaultSequenceFlow = null)
+    {
+        $this->sendTasks[$id] = array($participant, $message, $operation, $name);
+
+        if ($defaultSequenceFlow !== null) {
+            $this->defaultableFlowObjects[$defaultSequenceFlow] = $id;
+        }
+    }
+
+    /**
      * @return Workflow
      *
      * @throws \LogicException
@@ -242,6 +269,13 @@ class WorkflowBuilder
             $this->assertWorkflowHasRole($workflow, $roleId);
 
             $workflow->addFlowObject(new ServiceTask($id, $workflow->getRole($roleId), $operation, $name));
+        }
+
+        foreach ($this->sendTasks as $id => $task) {
+            list($roleId, $message, $operation, $name) = $task;
+            $this->assertWorkflowHasRole($workflow, $roleId);
+
+            $workflow->addFlowObject(new SendTask($id, $workflow->getRole($roleId), $message, $operation, $name));
         }
 
         foreach ($this->exclusiveGateways as $id => $gateway) {

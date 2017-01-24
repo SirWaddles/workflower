@@ -44,6 +44,8 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerializable
 {
+    const DEFAULT_ROLE_ID = '__ROLE__';
+
     /**
      * @var string
      */
@@ -494,7 +496,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
 
         if (!isset($selectedSequenceFlow)) {
             if (!($currentFlowObject instanceof ConditionalInterface) || $currentFlowObject->getDefaultSequenceFlowId() === null) {
-                throw new SequenceFlowNotSelectedException(sprintf('No sequence flow can be selected on "%s".',  $currentFlowObject->getId()));
+                throw new SequenceFlowNotSelectedException(sprintf('No sequence flow can be selected on "%s".', $currentFlowObject->getId()));
             }
 
             $selectedSequenceFlow = $this->connectingObjectCollection->get($currentFlowObject->getDefaultSequenceFlowId());
