@@ -1,8 +1,8 @@
 {
     "name": "phpmentors/workflower",
     "type": "library",
-    "description": "A BPMN 2.0 compliant workflow engine for PHP",
-    "keywords": ["flow", "workflow", "process", "bpm", "bpmn"],
+    "description": "A BPMN 2.0 workflow engine for PHP",
+    "keywords": ["flow", "workflow", "process", "bpm", "bpmn", "bpms"],
     "license": "BSD-2-Clause",
     "authors": [
         {
@@ -11,10 +11,11 @@
         }
     ],
     "require": {
-        "php": ">=5.3.9",
+        "php": ">=7.0.8",
+        "ext-dom": "*",
         "phpmentors/domain-kata": "~1.4",
-        "piece/stagehand-fsm": "~2.4",
-        "symfony/expression-language": "~2.7"
+        "piece/stagehand-fsm": "~2.5",
+        "symfony/expression-language": "~2.8 || ~3.0"
     },
     "require-dev": {
         "phake/phake": "~2.0",
@@ -32,7 +33,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "1.3.x-dev"
+            "dev-master": "2.0.x-dev"
         }
     }
 }

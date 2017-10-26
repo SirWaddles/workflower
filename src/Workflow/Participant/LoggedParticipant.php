@@ -103,7 +103,7 @@ class LoggedParticipant implements ParticipantInterface, WorkflowSerializable
     /**
      * @param string $method
      *
-     * @throws OperationNotSupportedException
+     * @return OperationNotSupportedException
      */
     private function createOperationNotFoundException($method)
     {

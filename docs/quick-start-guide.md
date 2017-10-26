@@ -1,25 +1,46 @@
 # Quick Start Guide
 
-Workflower is a workflow engine for PHP that is compliant with [BPMN 2.0](http://www.omg.org/spec/BPMN/2.0/) and is an open source product released under [The BSD 2-Clause License](https://opensource.org/licenses/BSD-2-Clause). The primary use of Workflower is to manage human-centric business processes with PHP applications.
+Workflower is a [BPMN 2.0](http://www.omg.org/spec/BPMN/2.0/) workflow engine for PHP and is an open source product released under [The BSD 2-Clause License](https://opensource.org/licenses/BSD-2-Clause). The primary use of Workflower is to manage human-centric business processes with PHP applications.
 
 This article shows the work required to manage business processes using Workflower on [Symfony](http://symfony.com/) applications.
+
+<!-- TOC -->
+
+- [Quick Start Guide](#quick-start-guide)
+    - [Symfony integration with Workflower using PHPMentorsWorkflowerBundle](#symfony-integration-with-workflower-using-phpmentorsworkflowerbundle)
+    - [Installing Workflower and PHPMentorsWorkflowerBundle](#installing-workflower-and-phpmentorsworkflowerbundle)
+    - [Configuraring PHPMentorsWorkflowerBundle](#configuraring-phpmentorsworkflowerbundle)
+    - [Designing workflows with BPMN](#designing-workflows-with-bpmn)
+        - [Workflow elements supported by Workflower](#workflow-elements-supported-by-workflower)
+    - [Designing entities that represent instances of workflow](#designing-entities-that-represent-instances-of-workflow)
+    - [Designing domain services for managing business processes](#designing-domain-services-for-managing-business-processes)
+    - [Managing business processes](#managing-business-processes)
+        - [Starting a process](#starting-a-process)
+        - [Managing processes with Process Console](#managing-processes-with-process-console)
+            - [Process operation views](#process-operation-views)
+            - [Process list views](#process-list-views)
+        - [Designing the persistent process model](#designing-the-persistent-process-model)
+    - [Toward the realization of Generative Programming with BPMS](#toward-the-realization-of-generative-programming-with-bpms)
+    - [References](#references)
+
+<!-- /TOC -->
 
 ## Symfony integration with Workflower using PHPMentorsWorkflowerBundle
 
 [PHPMentorsWorkflowerBundle](https://github.com/phpmentors-jp/workflower-bundle) is an integration layer to use Workflower in Symfony applications and provides the following features:
 
-* Automatically generates DI container services corresponding to workflows and automatically injects service objects using the `phpmentors_workflower.process_aware` tags
-* Allocates tasks to participants and controls access for participants using the Symfony security system
-* Provides transparent serialization/deserialization for entities using [Doctrine ORM](http://www.doctrine-project.org/projects/orm.html)
-* Supports multiple workflow contexts (directories where BPMN files are stored)
+- Automatically generates DI container services according to workflows and automatically injects service objects using the `phpmentors_workflower.process_aware` tags
+- Allocates tasks to participants and controls access for participants using the Symfony security system
+- Provides transparent serialization/deserialization for entities using [Doctrine ORM](http://www.doctrine-project.org/projects/orm.html)
+- Supports multiple workflow contexts (directories where BPMN files are stored)
 
 ## Installing Workflower and PHPMentorsWorkflowerBundle
 
 First, we will use Composer to install Workflower and PHPMentorsWorkflowerBundle as project dependent packages:
 
 ```console
-$ composer require phpmentors/workflower "1.2.*"
-$ composer require phpmentors/workflower-bundle "1.2.*"
+$ composer require phpmentors/workflower "1.3.*"
+$ composer require phpmentors/workflower-bundle "1.3.*"
 ```
 
 Second, change `Appkernel` to enable `PHPMentorsWorkflowerBundle`:
@@ -61,8 +82,8 @@ phpmentors_workflower:
 # ...
 ```
 
-* `serializer_service` - Specify the ID of the DI container service to be used for serializing `PHPMentors\Workflower\Workflow\Workflow` objects that are instances of workflows. `PHPMentors\Workflower\Persistence\WorkflowSerializerInterface` implementation is expected for the specified service. The default is `phpmentors_workflower.php_workflow_serializer`. You can also use `phpmentors_workflower.base64_php_workflow_serializer` to encode/decode serialized objects with MIME base64.
-* `workflow_contexts` - Specify `definition_dir` (the directory where the BPMN files are stored) for each workflow context ID.
+- `serializer_service` - Specify the ID of the DI container service to be used for serializing `PHPMentors\Workflower\Workflow\Workflow` objects that are instances of workflows. `PHPMentors\Workflower\Persistence\WorkflowSerializerInterface` implementation is expected for the specified service. The default is `phpmentors_workflower.php_workflow_serializer`. You can also use `phpmentors_workflower.base64_php_workflow_serializer` to encode/decode serialized objects with MIME base64.
+- `workflow_contexts` - Specify `definition_dir` (the directory where the BPMN files are stored) for each workflow context ID.
 
 ## Designing workflows with BPMN
 
@@ -76,17 +97,20 @@ The screenshot below is from [BPMN2 Modeler](https://www.eclipse.org/bpmn2-model
 
 Workflower supports the following BPMN 2.0 workflow elements:
 
-* Connecting objects
-  * Sequence flows
-* Flow objects
-  * Activities
-    * Tasks
-    * Service tasks
-  * Events
-    * Start events
-    * End events
-  * Gateways
-    * Exclusive gateways
+- Connecting objects
+    - Sequence flows
+- Flow objects
+    - Activities
+        - Tasks
+        - Service tasks
+        - Send tasks
+    - Events
+        - Start events
+        - End events
+    - Gateways
+        - Exclusive gateways
+- Swimlanes
+    - Lanes
 
 Please be aware that the unsupported elements in a workflow will be ignored.
 
@@ -224,7 +248,7 @@ class LoanRequestProcessCompletionUsecase implements ProcessAwareInterface
 }
 ```
 
-The service definition corresponding to the above is as follows:
+The service definition according to the above is as follows:
 
 ```yaml
 # ...
@@ -246,6 +270,52 @@ Finally, it is necessary to implement clients (controllers, commands, event list
 
 Once you have done so, you will be able to perform a series of operations on the business process from the web interface or the command line interface (CLI).
 
+### Starting a process
+
+The lifecycle of a workflow process (often called a process instance) starts by triggering a start event from some application event (e.g. an account opening application from a web page). Once the process is started, it will be subject to management.
+
+### Managing processes with Process Console
+
+For process management, one or more sets of a list-operation (generally known as list-detail) views can be used. These views and the features provided by their seem to be called **Process Console** in some products. 
+
+#### Process operation views
+ 
+A process operation view, which is detail or operation view, will consist of the following items:
+
+- The process entity and its related entities
+    - Some of these are evaluated as process data in Expression Language expressions when selecting sequence flows after completing an activity
+- Buttons that are enabled / disabled according to the state of the activity
+    - Allocate (the activity to the authenticated user or specified user)
+    - Start
+    - Complete
+- The activity Log for the process
+
+In addition, in the operation view we've seen the checklist to complete the activity, buttons for other operations related to the activity, the audit log for the process, etc. in the real world.
+
+#### Process list views
+
+A process list view is used to find processes matched with some conditions. In the list view it is useful to group the processes by the current activity ID, the process state, etc.. Their groups can be represented as tabs or nodes in a tree such like Gmail.
+
+### Designing the persistent process model
+
+The design and use of an excellent persistent model is one of the most important things in business systems. Persistence of workflow processes is, in a narrow sense, persistence of `Workflow` objects,
+but in an actual system a model of business processes, that is the persistent process model for your system, including` Workflow` object should be considered. In this model, different process data items and search keys for each workflow should also be considered. The models that we consider effective are the following:
+
+1. Individual `ProcessContextInterface` implementations for each workflow
+2. A common `ProcessContextInterface` implementation for all workflows
+3. A combination of an entity that has common properties for all workflows and individual `ProcessContextInterface` implementations for each workflow
+    - with inheritance(*1)
+    - with composition
+
+An example of the third model with the *Class Table Composition* (*2) is shown in the following figure.
+
+![An example of third model with the Class Table Composition](https://cloud.githubusercontent.com/assets/52985/25310218/9b1d17d2-281a-11e7-9721-dce3b912d3b5.png)
+
+---
+
+1. See [Single Table Inheritance](https://martinfowler.com/eaaCatalog/singleTableInheritance.html), [Class Table Inheritance](https://martinfowler.com/eaaCatalog/classTableInheritance.html), [Concrete Table Inheritance](https://martinfowler.com/eaaCatalog/concreteTableInheritance.html) described in [Catalog of Patterns of Enterprise Application Architecture](https://www.martinfowler.com/eaaCatalog/).
+2. *Class Table Composition*: this is a pattern I had used in the real world over the past two years, similar to PofEAA's Class Table Inheritance, except that it uses composition rather than inheritance.
+
 ## Toward the realization of Generative Programming with BPMS
 
 In this article we have seen the work required to manage business processes using Workflower on Symfony applications. Workflower and PHPMentorsWorkflowerBundle will only provide the `Workflow` domain model and basic integration layer corresponding to BPMN 2.0 workflow elements, so further work (and skill) will be required to actually create the workflow system on the application. It is by no means easy. This is because it is the design of a BPMS (Business Process Management System) or BPMS framework suitable for the target domain.
@@ -254,6 +324,6 @@ In addition, software development by BPMS can be said to be the practice of [Gen
 
 ## References
 
-* [phpmentors-jp/workflower-bundle](https://github.com/phpmentors-jp/workflower-bundle)
-* [phpmentors-jp/workflower](https://github.com/phpmentors-jp/workflower)
-* [Q-BPM](http://en.q-bpm.org/mediawiki/index.php?title=Main_Page)
+- [phpmentors-jp/workflower-bundle](https://github.com/phpmentors-jp/workflower-bundle)
+- [phpmentors-jp/workflower](https://github.com/phpmentors-jp/workflower)
+- [Q-BPM](http://en.q-bpm.org/mediawiki/index.php?title=Main_Page)

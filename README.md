@@ -1,8 +1,8 @@
 # Workflower
 
-A BPMN 2.0 compliant workflow engine for PHP
+A BPMN 2.0 workflow engine for PHP
 
-`Workflower` is a BPMN 2.0 compliant workflow engine for PHP. `Workflower` runs business processes using [the BPMN 2.0 specification](http://www.omg.org/spec/BPMN/2.0/). It's open-source and distributed under [the BSD 2-Clause License](http://opensource.org/licenses/BSD-2-Clause).
+`Workflower` is a BPMN 2.0 workflow engine for PHP. `Workflower` runs business processes using [the BPMN 2.0 specification](http://www.omg.org/spec/BPMN/2.0/). It's open-source and distributed under [the BSD 2-Clause License](http://opensource.org/licenses/BSD-2-Clause).
 
 [![Total Downloads](https://poser.pugx.org/phpmentors/workflower/downloads)](https://packagist.org/packages/phpmentors/workflower)
 [![Latest Stable Version](https://poser.pugx.org/phpmentors/workflower/v/stable)](https://packagist.org/packages/phpmentors/workflower)
@@ -46,18 +46,18 @@ Add the dependency to `phpmentors/workflower` into your `composer.json` file as 
 **Stable version:**
 
 ```
-composer require phpmentors/workflower "1.2.*"
+composer require phpmentors/workflower "1.3.*"
 ```
 
 **Development version:**
 
 ```
-composer require phpmentors/workflower "~1.3@dev"
+composer require phpmentors/workflower "~2.0@dev"
 ```
 
 ## Documentation
 
-* [Quick Start Guide](https://github.com/phpmentors-jp/workflower/blob/master/docs/GUIDE.md)
+* [Quick Start Guide](https://github.com/phpmentors-jp/workflower/blob/master/docs/quick-start-guide.md)
 * [Release Notes](https://github.com/phpmentors-jp/workflower/releases)
 
 ## Support
@@ -66,7 +66,7 @@ If you find a bug or have a question, or want to request a feature, create an is
 
 ## Copyright
 
-Copyright (c) 2015-2016 KUBO Atsuhiro and [contributors](https://github.com/phpmentors-jp/workflower/wiki/Contributors), All rights reserved.
+Copyright (c) 2015-2017 KUBO Atsuhiro and [contributors](https://github.com/phpmentors-jp/workflower/wiki/Contributors), All rights reserved.
 
 ## License
 
