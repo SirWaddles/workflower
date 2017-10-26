@@ -31,16 +31,8 @@ use PHPMentors\Workflower\Workflow\Operation\OperationRunnerInterface;
 use PHPMentors\Workflower\Workflow\Participant\ParticipantInterface;
 use PHPMentors\Workflower\Workflow\Participant\Role;
 use PHPMentors\Workflower\Workflow\Participant\RoleCollection;
-use Stagehand\FSM\Event\EventInterface;
 use PHPMentors\Workflower\Persistence\WorkflowSerializable;
 use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
-use Stagehand\FSM\Event\TransitionEvent;
-use Stagehand\FSM\State\FinalState;
-use Stagehand\FSM\State\InitialState;
-use Stagehand\FSM\State\State;
-use Stagehand\FSM\State\StateInterface;
-use Stagehand\FSM\StateMachine\StateMachine;
-use Stagehand\FSM\StateMachine\StateMachineInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerializable
@@ -56,6 +48,11 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      * @var string
      */
     private $name;
+
+    /**
+     * @var string
+     */
+    private $id;
 
     /**
      * @var ConnectingObjectCollection
@@ -88,11 +85,6 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     private $processData;
 
     /**
-     * @var StateMachineInterface
-     */
-    private $stateMachine;
-
-    /**
      * @var ExpressionLanguage
      *
      * @since Property available since Release 1.1.0
@@ -107,6 +99,11 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     private $operationRunner;
 
     /**
+     * @var string
+     */
+    private $currentFlowId;
+
+    /**
      * @param int|string $id
      * @param string     $name
      */
@@ -115,8 +112,8 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
         $this->connectingObjectCollection = new ConnectingObjectCollection();
         $this->flowObjectCollection = new FlowObjectCollection();
         $this->roleCollection = new RoleCollection();
-        $this->stateMachine = $this->createStateMachine($id);
         $this->name = $name;
+        $this->id = $id;
     }
 
     /**
@@ -125,13 +122,14 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     public function workflowSerialize(WorkflowSerializerInterface $serializer)
     {
         return $serializer->serialize(array(
+            'id' => $this->id,
             'name' => $this->name,
             'connectingObjectCollection' => $this->connectingObjectCollection,
             'flowObjectCollection' => $this->flowObjectCollection,
             'roleCollection' => $this->roleCollection,
             'startDate' => $this->startDate,
             'endDate' => $this->endDate,
-            'stateMachine' => $this->stateMachine,
+            'currentFlowId' => $this->currentFlowId,
         ));
     }
 
@@ -154,7 +152,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      */
     public function getId()
     {
-        return $this->stateMachine->getStateMachineId();
+        return $this->id;
     }
 
     /**
@@ -170,14 +168,6 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      */
     public function addConnectingObject(ConnectingObjectInterface $connectingObject)
     {
-        $this->stateMachine->addTransition(
-            $this->stateMachine->getState($connectingObject->getSource()->getId()),
-            new TransitionEvent($connectingObject->getDestination()->getId()),
-            $this->stateMachine->getState($connectingObject->getDestination()->getId()),
-            null,
-            null
-        );
-
         $this->connectingObjectCollection->add($connectingObject);
     }
 
@@ -186,25 +176,6 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      */
     public function addFlowObject(FlowObjectInterface $flowObject)
     {
-        $this->stateMachine->addState(new State($flowObject->getId()));
-        if ($flowObject instanceof StartEvent) {
-            $this->stateMachine->addTransition(
-                $this->stateMachine->getState(self::$STATE_START),
-                new TransitionEvent($flowObject->getId()),
-                $this->stateMachine->getState($flowObject->getId()),
-                null,
-                null
-            );
-        } elseif ($flowObject instanceof EndEvent) {
-            $this->stateMachine->addTransition(
-                $this->stateMachine->getState($flowObject->getId()),
-                new TransitionEvent($flowObject->getId()),
-                $this->stateMachine->getState(StateInterface::STATE_FINAL),
-                null,
-                null
-            );
-        }
-
         $this->flowObjectCollection->add($flowObject);
     }
 
@@ -271,7 +242,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      */
     public function isActive()
     {
-        return $this->stateMachine->isActive();
+        return $this->startDate && !$this->endDate;
     }
 
     /**
@@ -279,7 +250,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      */
     public function isEnded()
     {
-        return $this->stateMachine->isEnded();
+        return $this->endDate ? true : false;
     }
 
     /**
@@ -287,36 +258,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      */
     public function getCurrentFlowObject()
     {
-        $state = $this->stateMachine->getCurrentState();
-        if ($state === null) {
-            return null;
-        }
-
-        if ($state instanceof FinalState) {
-            return $this->flowObjectCollection->get($this->stateMachine->getPreviousState()->getStateId());
-        } else {
-            return $this->flowObjectCollection->get($state->getStateId());
-        }
-    }
-
-    /**
-     * @return FlowObjectInterface|null
-     */
-    public function getPreviousFlowObject()
-    {
-        $state = $this->stateMachine->getPreviousState();
-        if ($state === null) {
-            return null;
-        }
-
-        $previousFlowObject = $this->flowObjectCollection->get($state->getStateId());
-        if ($previousFlowObject instanceof EndEvent) {
-            $transitionLogs = $this->stateMachine->getTransitionLogs();
-
-            return $this->flowObjectCollection->get($transitionLogs[count($transitionLogs) - 2]->getFromState()->getStateId());
-        } else {
-            return $previousFlowObject;
-        }
+        return $this->flowObjectCollection->get($this->currentFlowId);
     }
 
     /**
@@ -325,8 +267,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     public function start(StartEvent $event)
     {
         $this->startDate = new \DateTime();
-        $this->stateMachine->start();
-        $this->stateMachine->triggerEvent($event->getId());
+        $this->currentFlowId = $event->getId();
         $this->selectSequenceFlow($event);
         $this->next();
     }
@@ -412,7 +353,6 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      */
     private function end(EndEvent $event)
     {
-        $this->stateMachine->triggerEvent($event->getId());
         $this->endDate = new \DateTime();
     }
 
@@ -438,36 +378,14 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     public function getActivityLog()
     {
         $activityLogCollection = new ActivityLogCollection();
-        foreach ($this->stateMachine->getTransitionLog() as $transitionLog) {
+        /*foreach ($this->stateMachine->getTransitionLog() as $transitionLog) {
             $flowObject = $this->getFlowObject($transitionLog->getToState()->getStateId());
             if ($flowObject instanceof ActivityInterface) {
                 $activityLogCollection->add(new ActivityLog($flowObject));
             }
-        }
+        }*/ // easy fix
 
         return $activityLogCollection;
-    }
-
-    /**
-     * @param string $stateMachineName
-     *
-     * @return StateMachineInterface
-     */
-    private function createStateMachine($stateMachineName)
-    {
-        $stateMachine = new StateMachine($stateMachineName);
-        $stateMachine->addState(new InitialState());
-        $stateMachine->addState(new FinalState());
-        $stateMachine->addState(new State(self::$STATE_START));
-        $stateMachine->addTransition(
-            $stateMachine->getState(StateInterface::STATE_INITIAL),
-            new TransitionEvent(EventInterface::EVENT_START),
-            $stateMachine->getState(self::$STATE_START),
-            null,
-            null
-        );
-
-        return $stateMachine;
     }
 
     /**
@@ -503,7 +421,8 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
             $selectedSequenceFlow = $this->connectingObjectCollection->get($currentFlowObject->getDefaultSequenceFlowId());
         }
 
-        $this->stateMachine->triggerEvent($selectedSequenceFlow->getDestination()->getId());
+        // move to next thingy?
+        // $this->stateMachine->triggerEvent($selectedSequenceFlow->getDestination()->getId());
 
         if ($this->getCurrentFlowObject() instanceof GatewayInterface) {
             $gateway = $this->getCurrentFlowObject();
@@ -542,6 +461,15 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     private function next()
     {
         $currentFlowObject = $this->getCurrentFlowObject();
+        $connections = $this->getConnectingObjectCollectionBySource($currentFlowObject);
+        if (count($connections) <= 0) {
+            // I dunno
+            return;
+        }
+        $connections = $connections->toArray();
+        $this->currentFlowId = reset($connections)->getDestination()->getId();
+        $currentFlowObject = $this->getCurrentFlowObject();
+
         if ($currentFlowObject instanceof ActivityInterface) {
             $currentFlowObject->createWorkItem();
 
