@@ -104,6 +104,11 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     private $currentFlowId;
 
     /**
+     * @var array
+     */
+    private $activityLog;
+
+    /**
      * @param int|string $id
      * @param string     $name
      */
@@ -114,6 +119,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
         $this->roleCollection = new RoleCollection();
         $this->name = $name;
         $this->id = $id;
+        $this->activityLog = [];
     }
 
     /**
@@ -130,6 +136,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
             'startDate' => $this->startDate,
             'endDate' => $this->endDate,
             'currentFlowId' => $this->currentFlowId,
+            'activityLog' => $this->activityLog,
         ));
     }
 
@@ -300,14 +307,14 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      * @param ActivityInterface    $activity
      * @param ParticipantInterface $participant
      */
-    public function completeWorkItem(ActivityInterface $activity, ParticipantInterface $participant)
+    public function completeWorkItem(ActivityInterface $activity, ParticipantInterface $participant, ActivityInterface $target = null)
     {
         $this->assertParticipantHasRole($activity, $participant);
         $this->assertCurrentFlowObjectIsExpectedActivity($activity);
 
         $activity->complete($participant);
         $this->selectSequenceFlow($activity);
-        $this->next();
+        $this->next($target);
     }
 
     /**
@@ -378,12 +385,12 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     public function getActivityLog()
     {
         $activityLogCollection = new ActivityLogCollection();
-        /*foreach ($this->stateMachine->getTransitionLog() as $transitionLog) {
-            $flowObject = $this->getFlowObject($transitionLog->getToState()->getStateId());
+        foreach ($this->activityLog as $log) {
+            $flowObject = $this->getFlowObject($log);
             if ($flowObject instanceof ActivityInterface) {
                 $activityLogCollection->add(new ActivityLog($flowObject));
             }
-        }*/ // easy fix
+        }
 
         return $activityLogCollection;
     }
@@ -458,7 +465,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     /**
      * @since Method available since Release 1.2.0
      */
-    private function next()
+    private function next(ActivityInterface $target = null)
     {
         $currentFlowObject = $this->getCurrentFlowObject();
         $connections = $this->getConnectingObjectCollectionBySource($currentFlowObject);
@@ -467,7 +474,16 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
             return;
         }
         $connections = $connections->toArray();
+        $this->activityLog[] = $this->currentFlowId;
+
         $this->currentFlowId = reset($connections)->getDestination()->getId();
+        if ($target) {
+            foreach ($connections as $connection) {
+                if ($connection->getDestination() == $target) {
+                    $this->currentFlowId = $target->getId();
+                }
+            }
+        }
         $currentFlowObject = $this->getCurrentFlowObject();
 
         if ($currentFlowObject instanceof ActivityInterface) {
