@@ -307,7 +307,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
      * @param ActivityInterface    $activity
      * @param ParticipantInterface $participant
      */
-    public function completeWorkItem(ActivityInterface $activity, ParticipantInterface $participant, ActivityInterface $target = null)
+    public function completeWorkItem(ActivityInterface $activity, ParticipantInterface $participant, FlowObjectInterface $target = null)
     {
         $this->assertParticipantHasRole($activity, $participant);
         $this->assertCurrentFlowObjectIsExpectedActivity($activity);
@@ -465,7 +465,7 @@ class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerial
     /**
      * @since Method available since Release 1.2.0
      */
-    private function next(ActivityInterface $target = null)
+    private function next(FlowObjectInterface $target = null)
     {
         $currentFlowObject = $this->getCurrentFlowObject();
         $connections = $this->getConnectingObjectCollectionBySource($currentFlowObject);
