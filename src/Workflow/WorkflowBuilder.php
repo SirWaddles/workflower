@@ -21,6 +21,7 @@ use PHPMentors\Workflower\Workflow\Element\TransitionalInterface;
 use PHPMentors\Workflower\Workflow\Event\EndEvent;
 use PHPMentors\Workflower\Workflow\Event\StartEvent;
 use PHPMentors\Workflower\Workflow\Gateway\ExclusiveGateway;
+use PHPMentors\Workflower\Workflow\Gateway\ParallelGateway;
 use PHPMentors\Workflower\Workflow\Participant\Role;
 use Symfony\Component\ExpressionLanguage\Expression;
 
@@ -35,6 +36,11 @@ class WorkflowBuilder
      * @var array
      */
     private $exclusiveGateways = array();
+
+    /**
+     * @var array
+     */
+    private $parallelGateways = array();
 
     /**
      * @var array
@@ -130,6 +136,21 @@ class WorkflowBuilder
     public function addExclusiveGateway($id, $participant, $name = null, $defaultSequenceFlow = null)
     {
         $this->exclusiveGateways[$id] = array($participant, $name);
+
+        if ($defaultSequenceFlow !== null) {
+            $this->defaultableFlowObjects[$defaultSequenceFlow] = $id;
+        }
+    }
+
+    /**
+     * @param int|string $id
+     * @param string     $participant
+     * @param string     $name
+     * @param int|string $defaultSequenceFlow
+     */
+    public function addParallelGateway($id, $participant, $name = null, $defaultSequenceFlow = null)
+    {
+        $this->parallelGateways[$id] = array($participant, $name);
 
         if ($defaultSequenceFlow !== null) {
             $this->defaultableFlowObjects[$defaultSequenceFlow] = $id;
@@ -285,6 +306,13 @@ class WorkflowBuilder
             $this->assertWorkflowHasRole($workflow, $roleId);
 
             $workflow->addFlowObject(new ExclusiveGateway($id, $workflow->getRole($roleId), $name));
+        }
+
+        foreach ($this->parallelGateways as $id => $gateway) {
+            list($roleId, $name) = $gateway;
+            $this->assertWorkflowHasRole($workflow, $roleId);
+
+            $workflow->addFlowObject(new ParallelGateway($id, $workflow->getRole($roleId), $name));
         }
 
         foreach ($this->sequenceFlows as $id => $flow) {
