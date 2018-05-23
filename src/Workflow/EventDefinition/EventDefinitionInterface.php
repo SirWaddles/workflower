@@ -10,8 +10,8 @@
  * distribution, and is available at http://opensource.org/licenses/BSD-2-Clause
  */
 
-namespace PHPMentors\Workflower\Workflow\Element;
+namespace PHPMentors\Workflower\Workflow\EventDefinition;
 
-interface TransitionalInterface extends OperationInterface
+interface EventDefinitionInterface
 {
 }

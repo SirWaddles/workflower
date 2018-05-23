@@ -20,6 +20,9 @@ use PHPMentors\Workflower\Workflow\Element\ConditionalInterface;
 use PHPMentors\Workflower\Workflow\Element\TransitionalInterface;
 use PHPMentors\Workflower\Workflow\Event\EndEvent;
 use PHPMentors\Workflower\Workflow\Event\StartEvent;
+use PHPMentors\Workflower\Workflow\Event\IntermediateCatchEvent;
+use PHPMentors\Workflower\Workflow\EventDefinition\TimerEventDefinition;
+use PHPMentors\Workflower\Workflow\EventDefinition\EventDefinitionInterface;
 use PHPMentors\Workflower\Workflow\Gateway\ExclusiveGateway;
 use PHPMentors\Workflower\Workflow\Gateway\ParallelGateway;
 use PHPMentors\Workflower\Workflow\Participant\Role;
@@ -75,6 +78,11 @@ class WorkflowBuilder
      * @since Property available since Release 1.3.0
      */
     private $sendTasks = array();
+
+    /**
+     * @var array
+     */
+    private $intermediateCatchEvents = array();
 
     /**
      * @var string
@@ -201,6 +209,27 @@ class WorkflowBuilder
     }
 
     /**
+     * @param string    $timerDuration
+     * @param string    $timeCycle
+     * @return TimerEventDefinition
+     */
+    public function buildTimerEventDefinition($timeDuration, $timeCycle)
+    {
+        return new TimerEventDefinition($timeDuration, $timeCycle);
+    }
+
+    /**
+     * @param string    $id
+     * @param string    $participant
+     * @param string    $name
+     * @param EventDefinitionInterface  $eventDefinition
+     */
+    public function addIntermediateCatchEvent($id, $participant, $name = null, EventDefinitionInterface $eventDefinition = null)
+    {
+        $this->intermediateCatchEvents[$id] = array($participant, $name, $eventDefinition);
+    }
+
+    /**
      * @param string     $id
      * @param string     $participant
      * @param string     $name
@@ -313,6 +342,13 @@ class WorkflowBuilder
             $this->assertWorkflowHasRole($workflow, $roleId);
 
             $workflow->addFlowObject(new ParallelGateway($id, $workflow->getRole($roleId), $name));
+        }
+
+        foreach ($this->intermediateCatchEvents as $id => $intermediateCatchEvent) {
+            list($roleId, $name, $eventDefinition) = $intermediateCatchEvent;
+            $this->assertWorkflowHasRole($workflow, $roleId);
+
+            $workflow->addFlowObject(new IntermediateCatchEvent($id, $workflow->getRole($roleId), $name, $eventDefinition));
         }
 
         foreach ($this->sequenceFlows as $id => $flow) {
