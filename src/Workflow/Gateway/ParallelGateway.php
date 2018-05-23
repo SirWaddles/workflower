@@ -12,7 +12,6 @@
 
 namespace PHPMentors\Workflower\Workflow\Gateway;
 
-use PHPMentors\DomainKata\Entity\EntityInterface;
 use PHPMentors\Workflower\Workflow\Participant\Role;
 use PHPMentors\Workflower\Persistence\WorkflowSerializable;
 use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
@@ -105,7 +104,7 @@ class ParallelGateway implements GatewayInterface, WorkflowSerializable
     /**
      * {@inheritdoc}
      */
-    public function equals(EntityInterface $target)
+    public function equals(ParallelGateway $target)
     {
         if (!($target instanceof self)) {
             return false;

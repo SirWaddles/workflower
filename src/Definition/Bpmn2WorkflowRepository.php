@@ -12,7 +12,6 @@
 
 namespace PHPMentors\Workflower\Definition;
 
-use PHPMentors\DomainKata\Entity\EntityInterface;
 use PHPMentors\Workflower\Workflow\Workflow;
 use PHPMentors\Workflower\Workflow\WorkflowRepositoryInterface;
 
@@ -26,20 +25,16 @@ class Bpmn2WorkflowRepository implements WorkflowRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function add(EntityInterface $entity)
+    public function add(Bpmn2File $entity)
     {
-        assert($entity instanceof Bpmn2File);
-
         $this->bpmn2Files[$entity->getId()] = $entity;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function remove(EntityInterface $entity)
+    public function remove(Bpmn2File $entity)
     {
-        assert($entity instanceof Bpmn2File);
-
         if (array_key_exists($entity->getId(), $this->bpmn2Files)) {
             unset($this->bpmn2Files[$entity->getId()]);
         }

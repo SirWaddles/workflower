@@ -12,8 +12,6 @@
 
 namespace PHPMentors\Workflower\Workflow;
 
-use PHPMentors\DomainKata\Entity\EntityInterface;
-use PHPMentors\DomainKata\Entity\Operation\IdentifiableInterface;
 use PHPMentors\Workflower\Workflow\Activity\ActivityInterface;
 use PHPMentors\Workflower\Workflow\Activity\UnexpectedActivityException;
 use PHPMentors\Workflower\Workflow\Connection\SequenceFlow;
@@ -35,7 +33,7 @@ use PHPMentors\Workflower\Persistence\WorkflowSerializable;
 use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
-class Workflow implements EntityInterface, IdentifiableInterface, WorkflowSerializable
+class Workflow implements WorkflowSerializable
 {
     const DEFAULT_ROLE_ID = '__ROLE__';
 

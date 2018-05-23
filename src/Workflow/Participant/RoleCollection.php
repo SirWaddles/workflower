@@ -12,12 +12,10 @@
 
 namespace PHPMentors\Workflower\Workflow\Participant;
 
-use PHPMentors\DomainKata\Entity\EntityCollectionInterface;
-use PHPMentors\DomainKata\Entity\EntityInterface;
 use PHPMentors\Workflower\Persistence\WorkflowSerializable;
 use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
-class RoleCollection implements EntityCollectionInterface, WorkflowSerializable
+class RoleCollection implements WorkflowSerializable
 {
     /**
      * @var array
@@ -49,10 +47,8 @@ class RoleCollection implements EntityCollectionInterface, WorkflowSerializable
     /**
      * {@inheritdoc}
      */
-    public function add(EntityInterface $entity)
+    public function add(Role $entity)
     {
-        assert($entity instanceof Role);
-
         $this->roles[$entity->getId()] = $entity;
     }
 
@@ -73,9 +69,9 @@ class RoleCollection implements EntityCollectionInterface, WorkflowSerializable
     /**
      * {@inheritdoc}
      */
-    public function remove(EntityInterface $entity)
+    public function remove(Role $entity)
     {
-        assert($entity instanceof Role);
+
     }
 
     /**

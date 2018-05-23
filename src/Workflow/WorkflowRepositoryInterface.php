@@ -12,9 +12,7 @@
 
 namespace PHPMentors\Workflower\Workflow;
 
-use PHPMentors\DomainKata\Repository\RepositoryInterface;
-
-interface WorkflowRepositoryInterface extends RepositoryInterface
+interface WorkflowRepositoryInterface
 {
     /**
      * @param int|string $id

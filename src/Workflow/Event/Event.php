@@ -12,7 +12,6 @@
 
 namespace PHPMentors\Workflower\Workflow\Event;
 
-use PHPMentors\DomainKata\Entity\EntityInterface;
 use PHPMentors\Workflower\Workflow\Participant\Role;
 use PHPMentors\Workflower\Persistence\WorkflowSerializable;
 use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
@@ -99,7 +98,7 @@ abstract class Event implements WorkflowSerializable
     /**
      * {@inheritdoc}
      */
-    public function equals(EntityInterface $target)
+    public function equals(Event $target)
     {
         if (!($target instanceof self)) {
             return false;

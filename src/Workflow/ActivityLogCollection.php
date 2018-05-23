@@ -12,8 +12,6 @@
 
 namespace PHPMentors\Workflower\Workflow;
 
-use PHPMentors\DomainKata\Entity\EntityCollectionInterface;
-use PHPMentors\DomainKata\Entity\EntityInterface;
 use PHPMentors\Workflower\Workflow\Activity\ActivityInterface;
 
 class ActivityLogCollection implements EntityCollectionInterface
@@ -31,10 +29,8 @@ class ActivityLogCollection implements EntityCollectionInterface
     /**
      * {@inheritdoc}
      */
-    public function add(EntityInterface $entity)
+    public function add(ActivityLog $entity)
     {
-        assert($entity instanceof ActivityLog);
-
         $this->activityLogs[] = $entity;
 
         if (array_key_exists($entity->getActivity()->getId(), $this->lastWorkItemIndexByActivity)) {
