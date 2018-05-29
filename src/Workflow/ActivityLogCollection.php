@@ -14,7 +14,7 @@ namespace PHPMentors\Workflower\Workflow;
 
 use PHPMentors\Workflower\Workflow\Activity\ActivityInterface;
 
-class ActivityLogCollection implements EntityCollectionInterface
+class ActivityLogCollection implements EntityCollectionInterface, \Countable, \IteratorAggregate
 {
     /**
      * @var ActivityLog[]

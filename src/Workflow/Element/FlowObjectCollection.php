@@ -15,7 +15,7 @@ namespace PHPMentors\Workflower\Workflow\Element;
 use PHPMentors\Workflower\Persistence\WorkflowSerializable;
 use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
-class FlowObjectCollection implements WorkflowSerializable
+class FlowObjectCollection implements WorkflowSerializable, \Countable, \IteratorAggregate
 {
     /**
      * @var array

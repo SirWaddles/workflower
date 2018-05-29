@@ -15,7 +15,7 @@ namespace PHPMentors\Workflower\Workflow\Element;
 use PHPMentors\Workflower\Persistence\WorkflowSerializable;
 use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
-class ConnectingObjectCollection implements WorkflowSerializable
+class ConnectingObjectCollection implements WorkflowSerializable, \Countable, \IteratorAggregate
 {
     /**
      * @var array

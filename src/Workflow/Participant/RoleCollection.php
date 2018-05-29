@@ -15,7 +15,7 @@ namespace PHPMentors\Workflower\Workflow\Participant;
 use PHPMentors\Workflower\Persistence\WorkflowSerializable;
 use PHPMentors\Workflower\Persistence\WorkflowSerializerInterface;
 
-class RoleCollection implements WorkflowSerializable
+class RoleCollection implements WorkflowSerializable, \Countable, \IteratorAggregate
 {
     /**
      * @var array
