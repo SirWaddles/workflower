@@ -57,6 +57,24 @@ class Bpmn2Reader
     }
 
     /**
+     * @param WorkflowBuilder   $workflowBuilder
+     * @param \DOMElement       $element
+     */
+    private function readEventDefinition(WorkflowBuilder $workflowBuilder, \DOMElement $element)
+    {
+        $eventDefinition = null;
+        foreach ($element->getElementsByTagNameNs(self::BPMN_NS, 'timerEventDefinition') as $childElement) {
+            $timeDuration = $childElement->getElementsByTagNameNs(self::BPMN_NS, 'timeDuration')->item(0);
+            if ($timeDuration) $timeDuration = $timeDuration->nodeValue;
+            $timeCycle = $childElement->getElementsByTagNameNs(self::BPMN_NS, 'timeCycle')->item(0);
+            if ($timeCycle) $timeCycle = $timeCycle->nodeValue;
+            $eventDefinition = $workflowBuilder->buildTimerEventDefinition($timeDuration, $timeCycle);
+            break;
+        }
+        return $eventDefinition;
+    }
+
+    /**
      * @param \DOMDocument $document
      * @param int|string  $workflowId
      *
@@ -218,20 +236,32 @@ class Bpmn2Reader
                 throw $this->createIdAttributeNotFoundException($element, $workflowId);
             }
 
-            $eventDefinition = null;
-            foreach ($element->getElementsByTagNameNs(self::BPMN_NS, 'timerEventDefinition') as $childElement) {
-                $timeDuration = $childElement->getElementsByTagNameNs(self::BPMN_NS, 'timeDuration')->item(0);
-                if ($timeDuration) $timeDuration = $timeDuration->nodeValue;
-                $timeCycle = $childElement->getElementsByTagNameNs(self::BPMN_NS, 'timeCycle')->item(0);
-                if ($timeCycle) $timeCycle = $timeCycle->nodeValue;
-                $eventDefinition = $workflowBuilder->buildTimerEventDefinition($timeDuration, $timeCycle);
-                break;
-            }
+            $eventDefinition = $this->readEventDefinition($workflowBuilder, $element);
 
             $workflowBuilder->addIntermediateCatchEvent(
                 $element->getAttribute('id'),
                 $this->provideRoleIdForFlowObject($flowObjectRoles, $element->getAttribute('id')),
                 $element->hasAttribute('name') ? $element->getAttribute('name') : null,
+                $eventDefinition
+            );
+        }
+
+        foreach ($document->getElementsByTagNameNs(self::BPMN_NS, 'boundaryEvent') as $element) {
+            if (!$element->hasAttribute('id')) {
+                throw $this->createIdAttributeNotFoundException($element, $workflowId);
+            }
+            if (!$element->hasAttribute('attachedToRef')) {
+                throw new \Exception("BoundaryEvent needs attachment");
+            }
+
+            $eventDefinition = $this->readEventDefinition($workflowBuilder, $element);
+
+            $workflowBuilder->addBoundaryEvent(
+                $element->getAttribute('id'),
+                $this->provideRoleIdForFlowObject($flowObjectRoles, $element->getAttribute('id')),
+                $element->hasAttribute('name') ? $element->getAttribute('name') : null,
+                $element->getAttribute('attachedToRef'),
+                $element->getAttribute('cancelActivity') === 'false' ? false : true,
                 $eventDefinition
             );
         }

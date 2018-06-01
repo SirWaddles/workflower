@@ -21,6 +21,7 @@ use PHPMentors\Workflower\Workflow\Element\TransitionalInterface;
 use PHPMentors\Workflower\Workflow\Event\EndEvent;
 use PHPMentors\Workflower\Workflow\Event\StartEvent;
 use PHPMentors\Workflower\Workflow\Event\IntermediateCatchEvent;
+use PHPMentors\Workflower\Workflow\Event\BoundaryEvent;
 use PHPMentors\Workflower\Workflow\EventDefinition\TimerEventDefinition;
 use PHPMentors\Workflower\Workflow\EventDefinition\EventDefinitionInterface;
 use PHPMentors\Workflower\Workflow\Gateway\ExclusiveGateway;
@@ -83,6 +84,11 @@ class WorkflowBuilder
      * @var array
      */
     private $intermediateCatchEvents = array();
+
+    /**
+     * @var array
+     */
+    private $boundaryEvents = array();
 
     /**
      * @var string
@@ -230,6 +236,19 @@ class WorkflowBuilder
     }
 
     /**
+     * @param string    $id
+     * @param string    $participant
+     * @param string    $name
+     * @param string    $attachedTo
+     * @param boolean   $cancelActivity
+     * @param EventDefinitionInterface  $eventDefinition
+     */
+    public function addBoundaryEvent($id, $participant, $name = null, $attachedTo, $cancelActivity, EventDefinitionInterface $eventDefinition = null)
+    {
+        $this->boundaryEvents[$id] = array($participant, $name, $attachedTo, $cancelActivity, $eventDefinition);
+    }
+
+    /**
      * @param string     $id
      * @param string     $participant
      * @param string     $name
@@ -349,6 +368,17 @@ class WorkflowBuilder
             $this->assertWorkflowHasRole($workflow, $roleId);
 
             $workflow->addFlowObject(new IntermediateCatchEvent($id, $workflow->getRole($roleId), $name, $eventDefinition));
+        }
+
+        foreach ($this->boundaryEvents as $id => $boundaryEvent) {
+            list($roleId, $name, $attachedTo, $cancelActivity, $eventDefinition) = $boundaryEvent;
+            $this->assertWorkflowHasRole($workflow, $roleId);
+
+            $createdEvent = new BoundaryEvent($id, $workflow->getRole($roleId), $name, $eventDefinition, $cancelActivity);
+            $workflow->addFlowObject($createdEvent);
+            $task = $workflow->getFlowObject($attachedTo);
+            if (!$task || !$task instanceof Task) throw new \Exception("Attached Reference does not exist");
+            $task->setBoundaryEvent($createdEvent);
         }
 
         foreach ($this->sequenceFlows as $id => $flow) {
